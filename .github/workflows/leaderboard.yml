@@ -1,4 +1,4 @@
-name: Update Leaderboard
+name: Update Leaderboard Data
 
 on:
   push:
@@ -22,12 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate leaderboard
+      - name: Generate leaderboard data JSON
         run: |
           mkdir -p docs
 
           python3 << 'PYEOF'
-          import json, os, glob, html
+          import json, os, glob
 
           contributors = []
           for f in sorted(glob.glob("contributors/*.json")):
@@ -39,13 +39,15 @@ jobs:
                   github = data.get("github", "")
                   skills = data.get("skills", [])
                   interests = data.get("interests", [])
+                  track = data.get("track", "")
 
                   # Detect level from submissions
                   level = 1
                   slug = os.path.basename(f).replace(".json", "")
-                  if os.path.exists(f"submissions/{slug}/level3.md"):
+                  sub_dir = f"submissions/{slug}"
+                  if os.path.exists(f"{sub_dir}/level3.md"):
                       level = 3
-                  elif os.path.exists(f"submissions/{slug}/level2.md"):
+                  elif os.path.exists(f"{sub_dir}/level2.md"):
                       level = 2
 
                   contributors.append({
@@ -53,100 +55,27 @@ jobs:
                       "github": github,
                       "skills": skills,
                       "interests": interests,
+                      "track": track,
                       "level": level,
-                      "file": os.path.basename(f),
                   })
               except:
                   continue
 
           contributors.sort(key=lambda x: (-x["level"], x["name"]))
 
-          total = len(contributors)
-          l1 = sum(1 for c in contributors if c["level"] >= 1)
-          l2 = sum(1 for c in contributors if c["level"] >= 2)
-          l3 = sum(1 for c in contributors if c["level"] >= 3)
+          # Write data JSON — the custom index.html reads this
+          with open("docs/data.json", "w") as f:
+              json.dump({"contributors": contributors, "generated": True}, f, indent=2)
 
-          rows = ""
-          for i, c in enumerate(contributors, 1):
-              level_badge = ["", "🟢", "🔵", "🟣"][c["level"]]
-              skills_str = ", ".join(c["skills"][:4])
-              gh_link = f'<a href="https://github.com/{html.escape(c["github"])}">{html.escape(c["github"])}</a>' if c["github"] else ""
-              rows += f"""
-              <tr>
-                  <td>{i}</td>
-                  <td>{html.escape(c["name"])}</td>
-                  <td>{gh_link}</td>
-                  <td>{level_badge} Level {c["level"]}</td>
-                  <td>{html.escape(skills_str)}</td>
-              </tr>"""
-
-          page = f"""<!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>LPI Developer Kit — Contributor Leaderboard</title>
-              <style>
-                  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-                  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; padding: 2rem; }}
-                  h1 {{ color: #58a6ff; margin-bottom: 0.5rem; }}
-                  .subtitle {{ color: #8b949e; margin-bottom: 2rem; }}
-                  .stats {{ display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }}
-                  .stat {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem 1.5rem; }}
-                  .stat-number {{ font-size: 2rem; font-weight: bold; color: #58a6ff; }}
-                  .stat-label {{ color: #8b949e; font-size: 0.85rem; }}
-                  table {{ width: 100%; border-collapse: collapse; background: #161b22; border-radius: 8px; overflow: hidden; }}
-                  th {{ background: #21262d; padding: 0.75rem 1rem; text-align: left; color: #8b949e; font-size: 0.85rem; text-transform: uppercase; }}
-                  td {{ padding: 0.75rem 1rem; border-top: 1px solid #21262d; }}
-                  tr:hover {{ background: #1c2128; }}
-                  a {{ color: #58a6ff; text-decoration: none; }}
-                  a:hover {{ text-decoration: underline; }}
-                  .footer {{ margin-top: 2rem; color: #484f58; font-size: 0.8rem; }}
-              </style>
-          </head>
-          <body>
-              <h1>LPI Developer Kit — Leaderboard</h1>
-              <p class="subtitle">LifeAtlas Contributor Program | Auto-updated on every merge</p>
-
-              <div class="stats">
-                  <div class="stat"><div class="stat-number">{total}</div><div class="stat-label">Contributors</div></div>
-                  <div class="stat"><div class="stat-number">{l1}</div><div class="stat-label">Level 1 (Registered)</div></div>
-                  <div class="stat"><div class="stat-number">{l2}</div><div class="stat-label">Level 2 (Stack Running)</div></div>
-                  <div class="stat"><div class="stat-number">{l3}</div><div class="stat-label">Level 3 (Agent Built)</div></div>
-              </div>
-
-              <table>
-                  <thead>
-                      <tr>
-                          <th>#</th>
-                          <th>Name</th>
-                          <th>GitHub</th>
-                          <th>Level</th>
-                          <th>Skills</th>
-                      </tr>
-                  </thead>
-                  <tbody>{rows}</tbody>
-              </table>
-
-              <p class="footer">
-                  🟢 Level 1 (Registered) | 🔵 Level 2 (Stack Running) | 🟣 Level 3 (Agent Built)<br>
-                  Generated automatically from <a href="https://github.com/Life-Atlas/lpi-developer-kit">Life-Atlas/lpi-developer-kit</a>
-              </p>
-          </body>
-          </html>"""
-
-          with open("docs/index.html", "w") as f:
-              f.write(page)
-
-          print(f"Leaderboard generated: {total} contributors, L1={l1} L2={l2} L3={l3}")
+          print(f"Leaderboard data: {len(contributors)} contributors")
           PYEOF
 
-      - name: Commit leaderboard
+      - name: Commit data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html
-          git diff --cached --quiet || git commit -m "Update leaderboard [automated]"
+          git add docs/data.json
+          git diff --cached --quiet || git commit -m "Update leaderboard data [automated]"
           git push
 
       - name: Deploy to GitHub Pages
@@ -158,4 +87,5 @@ jobs:
           path: docs
 
       - name: Deploy to Pages
+        id: deploy
         uses: actions/deploy-pages@v4
