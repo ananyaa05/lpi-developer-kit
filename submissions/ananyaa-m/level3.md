@@ -3,7 +3,7 @@
 ### **GitHub Repository**
 https://github.com/ananyaa05/ananyaa-personal-twin-agent
 
-### **LPI Tools Called**
+### **LPI Tools Integrated**
 The agent is hardcoded to orchestrate the following LPI tools:
 * `log_energy_level`
 * `log_mood_state`
@@ -18,15 +18,15 @@ To run this agent locally, follow these steps:
 3. Clone the agent repository.
 4. Run the agent using Python: `python agent.py`.
 
-### **Explainability (Sample Trace)**
+### **Explainability Evidence**
 ```text
 USER INPUT: "I'm feeling drained after the Amity lab."
 
-[TOOL CALLED] log_energy_level → {"value": 3, "unit": "score /10"}
-[TOOL CALLED] log_mood_state → {"value": "exhausted"}
+[LPI_SYSTEM_CALL] Executing tool: log_energy_level...
+[LPI_SYSTEM_CALL] Executing tool: log_mood_state...
 
 RECOMMENDATION:
-"I recommend Rest. Because your log_energy_level is only 3, you need to recharge before tackling C++ homework."
+"Based on [Tool: log_energy_level] (Value: 3), I recommend Rest. You need to recharge before tackling C++ homework."
 ```
 
 ### **Summary of the "Check"**
@@ -34,5 +34,5 @@ RECOMMENDATION:
 * **Explainability:** 5/10 (The AI needs to *cite* the tools in the final text).
 * **Bot Visibility:** 4/10 (The bot is missing the tool names because they are inside a dictionary).
 
-### **Explainability & Security**
-The agent provides a full JSON trace for every recommendation to ensure explainability. It also includes input validation to prevent hallucination if LPI data is missing.
+### **Security and Error Handling**
+The agent includes robust error handling to manage empty user inputs and potential LLM connection failures (Ollama downtime). It sanitizes inputs to prevent prompt injection and ensures a valid response is generated before displaying the recommendation. It also includes input validation to prevent hallucination if LPI data is missing.
