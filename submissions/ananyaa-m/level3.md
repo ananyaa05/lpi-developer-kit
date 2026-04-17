@@ -1,24 +1,26 @@
 # Level 3 Submission — Ananyaa M
 
-### **GitHub Repository**
+### Agent GitHub Repository
 https://github.com/ananyaa05/ananyaa-personal-twin-agent
 
-### **LPI Tools Integrated**
-This agent acts as a Digital Twin Consultant and is explicitly configured to orchestrate the official LPI methodology tools:
-* `smile-overview`: Retrieves the core framework phases (Strategy, Modeling, Implementation, Lifecycle).
-* `query-knowledge`: Searches the LPI knowledge base for best practices and digital twin concepts.
+### LPI tools referenced
+The agent queries the official LPI methodology tools:
+* `smile-overview`: Returns the core framework phases (Strategy, Modeling, Implementation, Lifecycle).
+* `query-knowledge`: Returns search results for digital twin implementation best practices.
 
-### **Setup Instructions**
-To run this agent locally, follow these steps:
-1. Ensure **Ollama** is installed and running.
-2. Download the **TinyLlama** model: `ollama pull tinyllama`.
+### Setup Instructions
+1. Ensure Ollama is installed and running.
+2. Download the TinyLlama model: `ollama pull tinyllama`.
 3. Clone the agent repository.
 4. Run the agent using Python: `python agent.py`.
 
-### **Explainability & LPI Trace Evidence**
-The agent implements **Explainable AI (XAI)** by providing a system-level trace for every tool interaction and forcing the LLM to cite its sources.
+### Evidence of Explainability (XAI)
+Explainability is not just a feature; it is a core architectural requirement of this agent. It implements a two-tiered provenance system to ensure the user always understands the "why" behind every response:
 
-**Sample Execution Trace:**
+1. The system prompt enforces strict citation rules. The LLM is not allowed to generate advice without explicitly referencing the LPI tool that provided the context (e.g., *"According to [Tool: smile-overview]..."*). 
+2. Every execution concludes by exposing the raw `[TRACE]` log to the terminal. This prints the exact JSON payloads fetched from the MCP schema, allowing the user to audit the precise data the LLM consumed before making its recommendation.
+
+**Execution Trace Evidence:**
 ```text
 USER INPUT: "What is the SMILE framework?"
 
@@ -26,18 +28,13 @@ USER INPUT: "What is the SMILE framework?"
 [System] Sending JSON-RPC request to tool: query-knowledge...
 
 RECOMMENDATION:
-"According to [Tool: smile-overview], the framework is SMILE (Sustainable Methodology for Impact Lifecycle Enablement) and its core phases are Strategy, Modeling, Implementation, and Lifecycle. Based on [Tool: query-knowledge], you should also ensure data interoperability."
+"According to [Tool: smile-overview], the framework is SMILE and its core phases are Strategy, Modeling, Implementation, and Lifecycle. Based on [Tool: query-knowledge], you should also ensure data interoperability."
 
 EXPLAINABILITY & PROVENANCE
-[TRACE] smile-overview -> {"framework": "SMILE...", "core_phases": ["1. Strategy", "2. Modeling", "3. Implementation", "4. Lifecycle"]}
-[TRACE] query-knowledge -> {"search_term": "What is the SMILE framework?", "best_practices": ["Ensure data interoperability", "Implement Explainable AI (XAI)"]}
+[TRACE] smile-overview -> {"framework": "SMILE", "core_phases": ["Strategy", "Modeling", "Implementation", "Lifecycle"]}
+[TRACE] query-knowledge -> {"best_practices": ["Ensure data interoperability"]}
 ```
 
-### **Security and Error Handling**
-The agent includes multiple layers of validation and resilience:
-
-* Utilizes a mocked JSON-RPC interface to handle the LPI tools locally, completely bypassing Windows directory path errors while maintaining architectural integrity.
-
-* *Validates user inputs to prevent empty strings from breaking the tool pipeline.
-
-* Implements try-except blocks to handle potential Ollama downtime or memory constraints returning a safe error message instead of failing completely.
+### Security and Error Handling
+* **System Resilience:** Uses a mocked JSON-RPC interface to handle tools locally, bypassing `WinError 267` path errors.
+* **LLM Fallbacks:** Implements `try-except` blocks to handle Ollama downtime gracefully.
