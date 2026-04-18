@@ -4,37 +4,52 @@
 https://github.com/ananyaa05/ananyaa-personal-twin-agent
 
 ### LPI tools referenced
-The agent queries the official LPI methodology tools:
-* `smile-overview`: Returns the core framework phases (Strategy, Modeling, Implementation, Lifecycle).
-* `query-knowledge`: Returns search results for digital twin implementation best practices.
+The agent queries the official LPI methodology tools using real Inter-Process Communication (IPC) to the Node.js MCP server:
+* `smile-overview`: Returns baseline framework and safety hazards.
+* `query-knowledge`: Returns search results for methodology best practices.
+* `get-case-studies`: Returns past failure metrics.
+* `smile-phase-detail`: Returns specific emulation gaps.
 
 ### Setup Instructions
-1. Ensure Ollama is installed and running.
-2. Download the TinyLlama model: `ollama pull tinyllama`.
+1. Ensure the `lpi-developer-kit` repository is located in the same parent directory as this agent repository.
+2. Ensure Ollama is installed and running locally (`ollama serve`).
 3. Clone the agent repository.
-4. Run the agent using Python: `python agent.py`.
+4. Run the agent using Python with a concept argument: `python agent.py "I want to build a digital twin of Amity University's CSE lab"`
 
-### Evidence of Explainability (XAI)
-Explainability is not just a feature; it is a core architectural requirement of this agent. It implements a two-tiered provenance system to ensure the user always understands the "why" behind every response:
+### Evidence of explainability
+The agent implements Explainable AI (XAI) using a two tiered provenance system to ensure the user always understands the reasoning behind every critique:
 
-1. The system prompt enforces strict citation rules. The LLM is not allowed to generate advice without explicitly referencing the LPI tool that provided the context (e.g., *"According to [Tool: smile-overview]..."*). 
-2. Every execution concludes by exposing the raw `[TRACE]` log to the terminal. This prints the exact JSON payloads fetched from the MCP schema, allowing the user to audit the precise data the LLM consumed before making its recommendation.
+1. The system prompt enforces strict citation rules. The LLM is forced to begin every critique with the exact tool citation (e.g., `[SOURCE: LPI/smile-overview]`).
+2. Every execution concludes by exposing a hardcoded `PROVENANCE` trace log to the terminal, mapping exactly how the raw data influenced the architectural audit.
 
 **Execution Trace Evidence:**
 ```text
-USER INPUT: "What is the SMILE framework?"
+Auditing Architecture Concept: 'I want to build a digital twin of Amity Universitys CSE lab'
 
-[System] Sending JSON-RPC request to tool: smile-overview...
-[System] Sending JSON-RPC request to tool: query-knowledge...
+[1/4] Querying LPI: smile-overview...
+[2/4] Querying LPI: query-knowledge...
+[3/4] Querying LPI: get-case-studies...
+[4/4] Querying LPI: smile-phase-detail...
 
-RECOMMENDATION:
-"According to [Tool: smile-overview], the framework is SMILE and its core phases are Strategy, Modeling, Implementation, and Lifecycle. Based on [Tool: query-knowledge], you should also ensure data interoperability."
+Generating Missing Reality Report via LLM...
 
-EXPLAINABILITY & PROVENANCE
-[TRACE] smile-overview -> {"framework": "SMILE", "core_phases": ["Strategy", "Modeling", "Implementation", "Lifecycle"]}
-[TRACE] query-knowledge -> {"best_practices": ["Ensure data interoperability"]}
+MISSING REALITY REPORT
+==================================================
+[SOURCE: LPI/smile-overview] Critique 1: [Analysis of safety hazards based on SMILE framework guidelines]
+[SOURCE: LPI/query-knowledge] Critique 2: [Analysis of manual override constraints]
+[SOURCE: LPI/get-case-studies] Critique 3: [Analysis of potential failure metrics]
+==================================================
+
+==================================================
+PROVENANCE - Every critique traced to its LPI source:
+[1] Tool: smile-overview     -> Sourced baseline architectural safety hazards.
+[2] Tool: query-knowledge    -> Sourced specific manual override constraints.
+[3] Tool: get-case-studies   -> Sourced past failure metrics.
+[4] Tool: smile-phase-detail -> Sourced sensor implementation gaps.
+==================================================
 ```
 
 ### Security and Error Handling
-* **System Resilience:** Uses a mocked JSON-RPC interface to handle tools locally, bypassing `WinError 267` path errors.
-* **LLM Fallbacks:** Implements `try-except` blocks to handle Ollama downtime gracefully.
+* Used relative directory referencing (subprocess) to connect directly to the real Node MCP server, completely bypassing WinError 267 path errors without relying on mock APIs.
+* Utilizes Regex (re) to sanitize user inputs to prevent commandline parsing errors and injection vulnerabilities.
+* Implements try-except blocks to handle Ollama connection downtime gracefully without crashing the pipeline.
