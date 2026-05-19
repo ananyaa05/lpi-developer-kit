@@ -1,0 +1,10 @@
+{
+  "name": "Sania Gurung",
+  "github": "SANIAGRG",
+  "program": "B.Tech CSE (AI & ML Specialization)",
+  "campus": "Amity University Noida",
+  "skills": ["machine-learning", "opencv", "pytorch", "sql", "data-preprocessing", "tensorflow", "neural-networks", "java", "deep-learning", "scikit-learn", "computer-vision", "pandas", "ollama", "python", "nlp", "numpy", "llm", "object-detection", "keras", "data-science"],
+  "interests": ["agents", "NLP", "AI-pipelines","LLMs"],
+  "track": "A: Agent Builders",
+  "my_twin": "I'd track the gap between sitting down and actually starting — because some days I'm deep in code within minutes, and other days an hour slips by before I've written a single line. My hunch is that it comes down to how the previous session ended: finishing something cleanly versus leaving things mid-thought. I've never had the data to know if that's true, and I want to find out before I keep losing mornings to it."
+}
